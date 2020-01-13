@@ -69,13 +69,15 @@ Bibtex:
     }
 """
 
-from sklearn.model_selection._split import _BaseKFold
+import itertools
 import numpy as np
 import scipy.sparse as sp
-import itertools
-from sklearn.utils import check_random_state
 
-def iterative_train_test_split(X, y, test_size, random_state=None):
+from sklearn.utils import check_random_state, shuffle
+from sklearn.model_selection._split import _BaseKFold
+
+
+def iterative_train_test_split(X, y, test_size, shuffle=True, random_state=None):
     """Iteratively stratified train/test split
 
     Parameters
@@ -95,13 +97,14 @@ def iterative_train_test_split(X, y, test_size, random_state=None):
     stratifier = IterativeStratification(n_splits=2, order=2, 
                                          sample_distribution_per_fold=[test_size, 1.0-test_size], 
                                          random_state=random_state)
+    if shuffle:
+        X, y = shuffle(X, y, random_state=random_state)
     train_indexes, test_indexes = next(stratifier.split(X, y))
 
     X_train, y_train = X[train_indexes, :], y[train_indexes, :]
     X_test, y_test = X[test_indexes, :], y[test_indexes, :]
 
     return X_train, y_train, X_test, y_test
-
 
 
 def _fold_tie_break(desired_samples_per_fold, M, random_state=None):
