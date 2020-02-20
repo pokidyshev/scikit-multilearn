@@ -78,7 +78,7 @@ from sklearn.utils import check_random_state
 from sklearn.model_selection._split import _BaseKFold
 
 
-def iterative_train_test_split(X, y, test_size, shuffle=True, random_state=None):
+def iterative_train_test_split(X, y, test_size, shuffle=False, random_state=None):
     """Iteratively stratified train/test split
 
     Parameters
@@ -95,9 +95,11 @@ def iterative_train_test_split(X, y, test_size, shuffle=True, random_state=None)
         stratified division into train/test split
     """
 
-    stratifier = IterativeStratification(n_splits=2, order=2, 
-                                         sample_distribution_per_fold=[test_size, 1.0-test_size], 
-                                         random_state=random_state)
+    stratifier = IterativeStratification(
+        n_splits=2,
+        order=2,
+        sample_distribution_per_fold=[test_size, 1.0-test_size]
+    )
     if shuffle:
         X, y = utils.shuffle(X, y, random_state=random_state)
     train_indexes, test_indexes = next(stratifier.split(X, y))
@@ -191,13 +193,15 @@ class IterativeStratification(_BaseKFold):
         the random state seed (optional)
     """
 
-    def __init__(self, n_splits=3, order=1, sample_distribution_per_fold = None, random_state=None):
+    def __init__(
+        self,
+        n_splits=3,
+        order=1,
+        sample_distribution_per_fold=None,
+    ):
         self.order = order
-        super(
-            IterativeStratification,
-            self).__init__(n_splits,
-                           shuffle=False,
-                           random_state=random_state)
+        # Doesn't work with shuffle = True
+        super().__init__(n_splits, shuffle=False, random_state=None)
 
         if sample_distribution_per_fold:
             self.percentage_per_fold = sample_distribution_per_fold
